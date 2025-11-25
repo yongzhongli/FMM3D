@@ -120,6 +120,7 @@ c------------------------------------------------------------------
      1     gradtarg(nd,3,*),hess(nd,6,*),hesstarg(nd,6,*)
       
       double precision timeinfo(6)
+      double precision ttotal
 
 c       Tree variables
       integer *8 mhung,idivflag,ndiv,isep,nboxes,nbmax,nlevels
@@ -181,7 +182,7 @@ c     ifprint is an internal information printing flag.
 c     Suppressed if ifprint=0.
 c     Prints timing breakdown and other things if ifprint=1.
 c      
-      ifprint=0
+      ifprint=1
 
 c
 c       turn on computation of list 1
@@ -478,7 +479,33 @@ C$    time1=omp_get_wtime()
      $   gradtargsort,hesstargsort,ntj,texpssort,scjsort,ifnear,
      $   timeinfo,ier)
 
+c
+c     print timing breakdown from hfmm3dmain
+c
+      if (ifprint .ge. 1) then
+         ttotal = 0d0
+         do i = 1,6
+            ttotal = ttotal + timeinfo(i)
+         enddo
+
+         write(*,'(A,1PE12.4)') ' [FMM3D] step1 form mp        = ',
+     1        timeinfo(1)
+         write(*,'(A,1PE12.4)') ' [FMM3D] step2 merge mp       = ',
+     1        timeinfo(2)
+         write(*,'(A,1PE12.4)') ' [FMM3D] step3 mp->loc+pw     = ',
+     1        timeinfo(3)
+         write(*,'(A,1PE12.4)') ' [FMM3D] step4 split loc      = ',
+     1        timeinfo(4)
+         write(*,'(A,1PE12.4)') ' [FMM3D] step5 eval locals    = ',
+     1        timeinfo(5)
+         write(*,'(A,1PE12.4)') ' [FMM3D] step6 direct (list1) = ',
+     1        timeinfo(6)
+         write(*,'(A,1PE12.4)') ' [FMM3D] total (1-6)          = ',
+     1        ttotal
+      endif
+
       if(ier.ne.0) return
+
 
 
       call cpu_time(time2)
