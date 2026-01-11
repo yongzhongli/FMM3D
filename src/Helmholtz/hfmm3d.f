@@ -2647,7 +2647,8 @@ c----------------------------------------------------------------------
      2  ipointer(5),ipointer(6),ipointer(7),ipointer(8)
 
       if (useB .eq. 0) then
-        write(*,'(A)') ' [Tree] interpret offsets: A (relative to itree(1))'
+        write(*,'(A)') ' [Tree] interpret offsets: A'
+        write(*,'(A)') ' [Tree]   (relative to itree(1))'
         write(*,'(A,I0)') ' [Tree] #leaf boxes        = ', leafA
         write(*,'(A,I0)') ' [Tree] #leaf w/ points    = ', leafwptsA
         write(*,'(A,I0)') ' [Tree] max leaf sources   = ', max_srcA
@@ -2655,7 +2656,8 @@ c----------------------------------------------------------------------
         write(*,'(A,I0)') ' [Tree] max leaf expc      = ', max_expA
         write(*,'(A,I0)') ' [Tree] max leaf (src+tgt) = ', max_stA
       else
-        write(*,'(A)') ' [Tree] interpret offsets: B (relative to itree(ipointer(1)))'
+        write(*,'(A)') ' [Tree] interpret offsets: B'
+        write(*,'(A)') ' [Tree]   (relative to itree(ipointer(1)))'
         write(*,'(A,I0)') ' [Tree] #leaf boxes        = ', leafB
         write(*,'(A,I0)') ' [Tree] #leaf w/ points    = ', leafwptsB
         write(*,'(A,I0)') ' [Tree] max leaf sources   = ', max_srcB
