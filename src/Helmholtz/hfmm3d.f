@@ -239,8 +239,8 @@ c       Call tree code
       call pts_tree_sort(nexpc,expc,itree,ltree,nboxes,nlevels,
      1   ipointer,treecenters,iexpc,iexpcse)
 
-      call dbg_tree_leaf_stats(nboxes,nlevels,ndiv,itree,ipointer,
-     1     isrcse,itargse,iexpcse)
+      call dbg_tree_leaf_stats(nboxes,nlevels,ndiv,
+     1     itree,ipointer,isrcse,itargse,iexpcse)
 
 
 c
@@ -2512,162 +2512,82 @@ c    (A) offsets are relative to itree(1)
 c    (B) offsets are relative to itree(ipointer(1))
 c  It chooses the one that yields nonzero number of leaf boxes.
 c======================================================================
-      subroutine dbg_tree_leaf_stats(nboxes,nlevels,itree,ipointer,
-     1     isrcse,itargse,iexpcse)
+      subroutine dbg_tree_leaf_stats(nboxes,nlevels,ndiv,
+     1     itree,ipointer,isrcse,itargse,iexpcse)
+c
+c     Debug helper (F77-safe):
+c       - prints nlevels/nboxes/ndiv
+c       - prints ipointer(1:8)
+c       - counts leaf boxes and leaf boxes with any points
+c       - reports max #src/#targ/#expc in a leaf
+c
       implicit none
 
-c     inputs
-      integer *8 nboxes, nlevels, ndiv
+      integer *8 nboxes,nlevels,ndiv
       integer *8 itree(*)
       integer *8 ipointer(8)
       integer *8 isrcse(2,*), itargse(2,*), iexpcse(2,*)
 
-c     locals
-      integer *8 ibox
-      integer *8 nchildA, nchildB
-      integer *8 leafA, leafB
-      integer *8 leafwptsA, leafwptsB
-      integer *8 ns_leaf, nt_leaf, ne_leaf, nst_leaf
-      integer *8 max_srcA, max_tgtA, max_expA, max_stA
-      integer *8 max_srcB, max_tgtB, max_expB, max_stB
-      integer *8 baseB
-      integer *8 useB
+      integer *8 ibox, nchild
+      integer *8 nleaf, nleaf_pts
+      integer *8 ns_leaf, nt_leaf, ne_leaf
+      integer *8 max_ns, max_nt, max_ne, max_nst
 
-c     initialize
-      leafA = 0
-      leafB = 0
-      leafwptsA = 0
-      leafwptsB = 0
+      nleaf     = 0
+      nleaf_pts = 0
+      max_ns    = 0
+      max_nt    = 0
+      max_ne    = 0
+      max_nst   = 0
 
-      max_srcA = 0
-      max_tgtA = 0
-      max_expA = 0
-      max_stA  = 0
-
-      max_srcB = 0
-      max_tgtB = 0
-      max_expB = 0
-      max_stB  = 0
-
-c     base for interpretation (B)
-c     If ipointer are relative to itree(ipointer(1)),
-c     then absolute index in itree(*) is (ipointer(1)-1)+offset.
-      baseB = ipointer(1) - 1
-
-c----------------------------------------------------------------------
-c     First pass: compute stats under interpretation (A) and (B)
-c----------------------------------------------------------------------
-      do ibox = 1, nboxes
-
-c       read nchild under two interpretations
-        nchildA = itree(ipointer(4) + ibox - 1)
-        nchildB = itree(baseB + ipointer(4) + ibox - 1)
-
-c       ---- interpretation A
-        if (nchildA .eq. 0) then
-          leafA = leafA + 1
-
-          ns_leaf = 0
-          nt_leaf = 0
-          ne_leaf = 0
-
-          if (isrcse(1,ibox) .le. isrcse(2,ibox)) then
-            ns_leaf = isrcse(2,ibox) - isrcse(1,ibox) + 1
-          endif
-
-          if (itargse(1,ibox) .le. itargse(2,ibox)) then
-            nt_leaf = itargse(2,ibox) - itargse(1,ibox) + 1
-          endif
-
-          if (iexpcse(1,ibox) .le. iexpcse(2,ibox)) then
-            ne_leaf = iexpcse(2,ibox) - iexpcse(1,ibox) + 1
-          endif
-
-          nst_leaf = ns_leaf + nt_leaf
-
-          if (nst_leaf .gt. 0) leafwptsA = leafwptsA + 1
-
-          if (ns_leaf .gt. max_srcA) max_srcA = ns_leaf
-          if (nt_leaf .gt. max_tgtA) max_tgtA = nt_leaf
-          if (ne_leaf .gt. max_expA) max_expA = ne_leaf
-          if (nst_leaf .gt. max_stA) max_stA = nst_leaf
-        endif
-
-c       ---- interpretation B
-        if (nchildB .eq. 0) then
-          leafB = leafB + 1
-
-          ns_leaf = 0
-          nt_leaf = 0
-          ne_leaf = 0
-
-          if (isrcse(1,ibox) .le. isrcse(2,ibox)) then
-            ns_leaf = isrcse(2,ibox) - isrcse(1,ibox) + 1
-          endif
-
-          if (itargse(1,ibox) .le. itargse(2,ibox)) then
-            nt_leaf = itargse(2,ibox) - itargse(1,ibox) + 1
-          endif
-
-          if (iexpcse(1,ibox) .le. iexpcse(2,ibox)) then
-            ne_leaf = iexpcse(2,ibox) - iexpcse(1,ibox) + 1
-          endif
-
-          nst_leaf = ns_leaf + nt_leaf
-
-          if (nst_leaf .gt. 0) leafwptsB = leafwptsB + 1
-
-          if (ns_leaf .gt. max_srcB) max_srcB = ns_leaf
-          if (nt_leaf .gt. max_tgtB) max_tgtB = nt_leaf
-          if (ne_leaf .gt. max_expB) max_expB = ne_leaf
-          if (nst_leaf .gt. max_stB) max_stB = nst_leaf
-        endif
-
-      enddo
-
-c----------------------------------------------------------------------
-c     Decide which interpretation to report
-c     - Prefer one that yields nonzero leaf boxes
-c     - If both nonzero, prefer larger leaf count (usually correct)
-c----------------------------------------------------------------------
-      useB = 0
-      if (leafA .eq. 0 .and. leafB .gt. 0) then
-        useB = 1
-      else if (leafA .gt. 0 .and. leafB .gt. 0) then
-        if (leafB .gt. leafA) useB = 1
-      endif
-
-c----------------------------------------------------------------------
-c     Print results
-c----------------------------------------------------------------------
       write(*,'(A,I0)') ' [Tree] nlevels            = ', nlevels
       write(*,'(A,I0)') ' [Tree] ndiv               = ', ndiv
       write(*,'(A,I0)') ' [Tree] nboxes             = ', nboxes
-      write(*,'(A,8(I0,1X))') ' [Tree] ipointer = ',
-     1  ipointer(1),ipointer(2),ipointer(3),ipointer(4),
-     2  ipointer(5),ipointer(6),ipointer(7),ipointer(8)
+      write(*,'(A,8(1X,I0))') ' [Tree] ipointer =', ipointer(1),
+     1   ipointer(2),ipointer(3),ipointer(4),ipointer(5),
+     2   ipointer(6),ipointer(7),ipointer(8)
 
-      if (useB .eq. 0) then
-        write(*,'(A)') ' [Tree] interpret offsets: A'
-        write(*,'(A)') ' [Tree]   (relative to itree(1))'
-        write(*,'(A,I0)') ' [Tree] #leaf boxes        = ', leafA
-        write(*,'(A,I0)') ' [Tree] #leaf w/ points    = ', leafwptsA
-        write(*,'(A,I0)') ' [Tree] max leaf sources   = ', max_srcA
-        write(*,'(A,I0)') ' [Tree] max leaf targets   = ', max_tgtA
-        write(*,'(A,I0)') ' [Tree] max leaf expc      = ', max_expA
-        write(*,'(A,I0)') ' [Tree] max leaf (src+tgt) = ', max_stA
-      else
-        write(*,'(A)') ' [Tree] interpret offsets: B'
-        write(*,'(A)') ' [Tree]   (relative to itree(ipointer(1)))'
-        write(*,'(A,I0)') ' [Tree] #leaf boxes        = ', leafB
-        write(*,'(A,I0)') ' [Tree] #leaf w/ points    = ', leafwptsB
-        write(*,'(A,I0)') ' [Tree] max leaf sources   = ', max_srcB
-        write(*,'(A,I0)') ' [Tree] max leaf targets   = ', max_tgtB
-        write(*,'(A,I0)') ' [Tree] max leaf expc      = ', max_expB
-        write(*,'(A,I0)') ' [Tree] max leaf (src+tgt) = ', max_stB
-      endif
+c     leaf: nchild == 0, where nchild is stored at itree(ipointer(4)+ibox-1)
+      do ibox = 1, nboxes
+         nchild = itree(ipointer(4) + ibox - 1)
+         if (nchild .eq. 0) then
+            nleaf = nleaf + 1
+
+            ns_leaf = 0
+            nt_leaf = 0
+            ne_leaf = 0
+
+            if (isrcse(1,ibox) .le. isrcse(2,ibox)) then
+               ns_leaf = isrcse(2,ibox) - isrcse(1,ibox) + 1
+            endif
+            if (itargse(1,ibox) .le. itargse(2,ibox)) then
+               nt_leaf = itargse(2,ibox) - itargse(1,ibox) + 1
+            endif
+            if (iexpcse(1,ibox) .le. iexpcse(2,ibox)) then
+               ne_leaf = iexpcse(2,ibox) - iexpcse(1,ibox) + 1
+            endif
+
+            if (ns_leaf + nt_leaf + ne_leaf .gt. 0) then
+               nleaf_pts = nleaf_pts + 1
+            endif
+
+            if (ns_leaf .gt. max_ns) max_ns = ns_leaf
+            if (nt_leaf .gt. max_nt) max_nt = nt_leaf
+            if (ne_leaf .gt. max_ne) max_ne = ne_leaf
+            if (ns_leaf + nt_leaf .gt. max_nst)
+     1          max_nst = ns_leaf + nt_leaf
+         endif
+      enddo
+
+      write(*,'(A,I0)') ' [Tree] #leaf boxes        = ', nleaf
+      write(*,'(A,I0)') ' [Tree] #leaf w/ points    = ', nleaf_pts
+      write(*,'(A,I0)') ' [Tree] max leaf sources   = ', max_ns
+      write(*,'(A,I0)') ' [Tree] max leaf targets   = ', max_nt
+      write(*,'(A,I0)') ' [Tree] max leaf expc      = ', max_ne
+      write(*,'(A,I0)') ' [Tree] max leaf (src+tgt) = ', max_nst
 
       return
       end
+
 
 c======================================================================
