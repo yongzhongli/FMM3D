@@ -718,6 +718,52 @@ c
 c
 c
 
+      subroutine hfmm3d_t_c_p_ndiv(eps,zk,nsource,source,
+     1    charge,ntarg,targ,pottarg,ndiv,ier)
+cf2py  intent(in) eps
+cf2py  intent(in) zk
+cf2py  intent(in) nsource,source,charge
+cf2py  intent(in) ntarg,targ
+cf2py  intent(in) ndiv
+cf2py  intent(out) pottarg,ier
+c-------------------------------------
+c  Same as hfmm3d_t_c_p, but user specifies ndiv.
+c-------------------------------------
+      implicit none
+      double precision eps
+      double complex zk
+
+      integer *8 nsource,ntarg,ifcharge,ifdipole,ifpgh,ifpghtarg
+      integer *8 nd,ier,iper
+      integer *8 ndiv
+
+      double precision source(3,nsource),targ(3,ntarg)
+      double complex charge(nsource)
+      double complex dipvec(3,1)
+
+      double complex pot(1)
+      double complex pottarg(ntarg)
+
+      double complex grad(3),gradtarg(3)
+      double complex hess(6),hesstarg(6)
+
+      nd = 1
+      ifcharge = 1
+      ifdipole = 0
+
+      ifpgh = 0
+      ifpghtarg = 1
+      iper = 0
+      ier = 0
+
+      call hfmm3d_ndiv(nd,eps,zk,nsource,source,ifcharge,charge,
+     1      ifdipole,dipvec,iper,ifpgh,pot,grad,hess,ntarg,targ,
+     2      ifpghtarg,pottarg,gradtarg,hesstarg,ndiv,ier)
+
+      return
+      end
+
+
       subroutine hfmm3d_t_c_g(eps,zk,nsource,source,
      1    charge,ntarg,targ,pottarg,
      2    gradtarg,ier)

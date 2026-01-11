@@ -31,6 +31,14 @@
                     CPX *pottarg, int64_t *ier);
 
 
+  void hfmm3d_t_c_p_ndiv_(double *eps, CPX *zk, int64_t *nsource,
+                          double *source, CPX *charge,
+                          int64_t *nt, double *targ,
+                          CPX *pottarg, int64_t *ndiv,
+                          int64_t *ier);
+
+
+
   void hfmm3d_t_c_g_(double *eps, CPX *zk, int64_t *nsource,
                     double *source, CPX *charge, int64_t *nt, double *targ, 
                     CPX *pottarg, CPX *gradtarg, int64_t *ier);
