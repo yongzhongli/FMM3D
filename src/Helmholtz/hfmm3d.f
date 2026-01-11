@@ -2504,17 +2504,18 @@ c
         end
 c------------------------------------------------------------------     
 c======================================================================
-c  Debug helper: print leaf stats of the built tree
+c  Debug helper: print leaf stats of the built tree (F77 fixed-form safe)
 c======================================================================
-      subroutine dbg_tree_leaf_stats(nboxes,nlevels,itree,ltree,ipointer,isrcse,itargse,iexpcse)
+      subroutine dbg_tree_leaf_stats(nboxes,nlevels,itree,ipointer,
+     1     isrcse,itargse,iexpcse)
 
       implicit none
 
 c     inputs
-      integer *8 nboxes, nlevels, ltree
-      integer *8 itree(ltree)
+      integer *8 nboxes, nlevels
+      integer *8 itree(*)
       integer *8 ipointer(8)
-      integer *8 isrcse(2,nboxes), itargse(2,nboxes), iexpcse(2,nboxes)
+      integer *8 isrcse(2,*), itargse(2,*), iexpcse(2,*)
 
 c     locals
       integer *8 ibox, nchild
@@ -2535,19 +2536,16 @@ c     locals
         if (nchild .eq. 0) then
           nleaf_boxes = nleaf_boxes + 1
 
-c         sources in this box
           ns_leaf = 0
           if (isrcse(1,ibox) .le. isrcse(2,ibox)) then
             ns_leaf = isrcse(2,ibox) - isrcse(1,ibox) + 1
           endif
 
-c         targets in this box
           nt_leaf = 0
           if (itargse(1,ibox) .le. itargse(2,ibox)) then
             nt_leaf = itargse(2,ibox) - itargse(1,ibox) + 1
           endif
 
-c         expansion centers in this box (often 0 in particle mode)
           ne_leaf = 0
           if (iexpcse(1,ibox) .le. iexpcse(2,ibox)) then
             ne_leaf = iexpcse(2,ibox) - iexpcse(1,ibox) + 1
