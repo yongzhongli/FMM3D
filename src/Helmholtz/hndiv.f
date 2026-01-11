@@ -28,9 +28,9 @@ c
        else if(eps.ge.0.5d-9) then
          ndiv = 400
        else if(eps.ge.0.5d-12) then
-         ndiv = 600
+         ndiv = 2000
        else if(eps.ge.0.5d-15) then
-         ndiv = 700
+         ndiv = 3000
        else
          ndiv = ns+nt
        endif

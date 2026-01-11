@@ -239,6 +239,9 @@ c       Call tree code
       call pts_tree_sort(nexpc,expc,itree,ltree,nboxes,nlevels,
      1   ipointer,treecenters,iexpc,iexpcse)
 
+      call dbg_tree_leaf_stats(nboxes,nlevels,itree,ltree,ipointer,
+     1     isrcse,itargse,iexpcse)
+
 c
 c   End of tree build
 c
@@ -2500,3 +2503,76 @@ c
         return
         end
 c------------------------------------------------------------------     
+c======================================================================
+c  Debug helper: print leaf stats of the built tree
+c======================================================================
+      subroutine dbg_tree_leaf_stats(nboxes,nlevels,itree,ltree,ipointer,
+     1     isrcse,itargse,iexpcse)
+
+      implicit none
+
+c     inputs
+      integer *8 nboxes, nlevels, ltree
+      integer *8 itree(ltree)
+      integer *8 ipointer(8)
+      integer *8 isrcse(2,nboxes), itargse(2,nboxes), iexpcse(2,nboxes)
+
+c     locals
+      integer *8 ibox, nchild
+      integer *8 ns_leaf, nt_leaf, ne_leaf, nleaf_tot
+      integer *8 max_leaf_tot, max_leaf_src, max_leaf_targ, max_leaf_exp
+      integer *8 nleaf_boxes, nleaf_with_pts
+
+      max_leaf_tot   = 0
+      max_leaf_src   = 0
+      max_leaf_targ  = 0
+      max_leaf_exp   = 0
+      nleaf_boxes    = 0
+      nleaf_with_pts = 0
+
+      do ibox = 1, nboxes
+        nchild = itree(ipointer(4) + ibox - 1)
+
+        if (nchild .eq. 0) then
+          nleaf_boxes = nleaf_boxes + 1
+
+c         sources in this box
+          ns_leaf = 0
+          if (isrcse(1,ibox) .le. isrcse(2,ibox)) then
+            ns_leaf = isrcse(2,ibox) - isrcse(1,ibox) + 1
+          endif
+
+c         targets in this box
+          nt_leaf = 0
+          if (itargse(1,ibox) .le. itargse(2,ibox)) then
+            nt_leaf = itargse(2,ibox) - itargse(1,ibox) + 1
+          endif
+
+c         expansion centers in this box (often 0 in particle mode)
+          ne_leaf = 0
+          if (iexpcse(1,ibox) .le. iexpcse(2,ibox)) then
+            ne_leaf = iexpcse(2,ibox) - iexpcse(1,ibox) + 1
+          endif
+
+          nleaf_tot = ns_leaf + nt_leaf
+          if (nleaf_tot .gt. 0) nleaf_with_pts = nleaf_with_pts + 1
+
+          if (ns_leaf .gt. max_leaf_src)   max_leaf_src  = ns_leaf
+          if (nt_leaf .gt. max_leaf_targ)  max_leaf_targ = nt_leaf
+          if (ne_leaf .gt. max_leaf_exp)   max_leaf_exp  = ne_leaf
+          if (nleaf_tot .gt. max_leaf_tot) max_leaf_tot  = nleaf_tot
+        endif
+      enddo
+
+      write(*,'(A,I0)') ' [Tree] nlevels            = ', nlevels
+      write(*,'(A,I0)') ' [Tree] nboxes             = ', nboxes
+      write(*,'(A,I0)') ' [Tree] #leaf boxes        = ', nleaf_boxes
+      write(*,'(A,I0)') ' [Tree] #leaf w/ points    = ', nleaf_with_pts
+      write(*,'(A,I0)') ' [Tree] max leaf sources   = ', max_leaf_src
+      write(*,'(A,I0)') ' [Tree] max leaf targets   = ', max_leaf_targ
+      write(*,'(A,I0)') ' [Tree] max leaf expc      = ', max_leaf_exp
+      write(*,'(A,I0)') ' [Tree] max leaf (src+tgt) = ', max_leaf_tot
+
+      return
+      end
+c======================================================================
