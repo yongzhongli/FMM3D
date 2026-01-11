@@ -2506,8 +2506,7 @@ c------------------------------------------------------------------
 c======================================================================
 c  Debug helper: print leaf stats of the built tree
 c======================================================================
-      subroutine dbg_tree_leaf_stats(nboxes,nlevels,itree,ltree,ipointer,
-     1     isrcse,itargse,iexpcse)
+      subroutine dbg_tree_leaf_stats(nboxes,nlevels,itree,ltree,ipointer,isrcse,itargse,iexpcse)
 
       implicit none
 
