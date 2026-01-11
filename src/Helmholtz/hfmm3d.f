@@ -239,7 +239,7 @@ c       Call tree code
       call pts_tree_sort(nexpc,expc,itree,ltree,nboxes,nlevels,
      1   ipointer,treecenters,iexpc,iexpcse)
 
-      call dbg_tree_leaf_stats(nboxes,nlevels,itree,ipointer,
+      call dbg_tree_leaf_stats(nboxes,nlevels,ndiv,itree,ipointer,
      1     isrcse,itargse,iexpcse)
 
 
@@ -2517,7 +2517,7 @@ c======================================================================
       implicit none
 
 c     inputs
-      integer *8 nboxes, nlevels
+      integer *8 nboxes, nlevels, ndiv
       integer *8 itree(*)
       integer *8 ipointer(8)
       integer *8 isrcse(2,*), itargse(2,*), iexpcse(2,*)
@@ -2641,6 +2641,7 @@ c----------------------------------------------------------------------
 c     Print results
 c----------------------------------------------------------------------
       write(*,'(A,I0)') ' [Tree] nlevels            = ', nlevels
+      write(*,'(A,I0)') ' [Tree] ndiv               = ', ndiv
       write(*,'(A,I0)') ' [Tree] nboxes             = ', nboxes
       write(*,'(A,8(I0,1X))') ' [Tree] ipointer = ',
      1  ipointer(1),ipointer(2),ipointer(3),ipointer(4),
