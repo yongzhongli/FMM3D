@@ -2596,7 +2596,7 @@ c  User-specified ndiv version of hfmm3d
 c  Same functionality as hfmm3d, but bypasses hndiv() and
 c  uses user-provided ndiv_user for tree construction.
 c-----------------------------------------------------------
-      subroutine hfmm3d_ndiv(nd,eps,zk,nsource,source,ifcharge,
+      subroutine hfmm3d_userndiv(nd,eps,zk,nsource,source,ifcharge,
      $    charge,ifdipole,dipvec,iper,ifpgh,pot,grad,hess,ntarg,
      $    targ,ifpghtarg,pottarg,gradtarg,hesstarg,ndiv_user,ier)
 

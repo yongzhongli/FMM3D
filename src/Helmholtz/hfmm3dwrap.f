@@ -756,7 +756,7 @@ c-------------------------------------
       iper = 0
       ier = 0
 
-      call hfmm3d_ndiv(nd,eps,zk,nsource,source,ifcharge,charge,
+      call hfmm3d_userndiv(nd,eps,zk,nsource,source,ifcharge,charge,
      1      ifdipole,dipvec,iper,ifpgh,pot,grad,hess,ntarg,targ,
      2      ifpghtarg,pottarg,gradtarg,hesstarg,ndiv,ier)
 
